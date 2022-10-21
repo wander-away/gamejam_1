@@ -22,6 +22,8 @@ function love.load()
 	player.speed = 300
 	player.bullets = {}
 
+  playerShot = false
+
 	playerImg = love.graphics.newImage('player2.png')
 	background = love.graphics.newImage('sea2.png')
 
@@ -32,6 +34,10 @@ function love.load()
 	paused = false
 
 	drawGameOver = false
+
+  music = love.audio.newSource('classicalmusic.mp3', 'stream')
+  bulletSound = love.audio.newSource('fireballsound.wav', 'static')
+  enemyHit = love.audio.newSource('enemyHit.wav', 'static')
 
 	gameState = "startState"
 
@@ -62,6 +68,10 @@ function love.update(dt)
 		if gameState == 'playState' then
 			bulletCollision()
 			enemy:update(dt)
+
+      music:setLooping(true)
+      music:setVolume(0.7)
+      music:play()
 
 			if love.keyboard.isDown("left") then
 				player.x = player.x - player.speed * dt
@@ -182,6 +192,7 @@ function love.draw()
 	if gameState == 'gameOver' then
 		love.graphics.print("Game over!", 300, 240)
 		love.graphics.print("Final Score: "..tostring(score), 300, 260)
+    music:stop()
 	end
 end
 
@@ -191,6 +202,7 @@ function love.keypressed(key)
 	end
 
 	if key == "space" then
+    bulletSound:play()
 		shoot()
 	end
 
@@ -232,6 +244,7 @@ function bulletCollision()
 			va.y + 4 > v.y and
 			va.y < v.y + 32 then
 				score = score + 1
+        enemyHit:play()
 				table.remove(enemy, i)
 				table.remove(player.bullets, ia)
 			end
