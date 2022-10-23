@@ -138,31 +138,38 @@ function love.draw()
 		local BUTTON_HEIGHT = wh * (1/8)
 		local margin = 16
 
-    -- sets a total height variable for the buttons and a y cursor variable 
+    -- sets a total height variable for the buttons and a y cursor variable
 		local total_height = (BUTTON_HEIGHT + margin) * #buttons
 		local cursor_y = 0
 
+    --for loop indexing through buttons
 		for i, button in ipairs(buttons) do
 			button.last = button.now
 
+      -- button x and y variables
 			local bx = (ww * 0.5) - (button_width * 0.5)
 			local by = (wh * 0.5) - (total_height * 0.5) + cursor_y
 
+      -- color table and mouse x, y positions
 			local color = {0.4, 0.4, 0.5, 1.0}
 			local mx, my = love.mouse.getPosition()
 
+      -- basic aabb detection to know if mouse is hovering over button
 			local hot = mx > bx and mx < bx + button_width and
 									my > by and my < by + BUTTON_HEIGHT
 
+      -- if mouse is hovering over button change color
 			if hot then
 				color = {0.8, 0.8, 0.9, 1.0}
 			end
 
+      -- if the button is clicked and hovered, call the button's function
 			button.now = love.mouse.isDown(1)
 			if button.now and not button.last and hot then
 				button.fn()
 			end
 
+      -- set color of button and draw it
 			love.graphics.setColor(unpack(color))
 			love.graphics.rectangle(
 				"fill",
@@ -170,50 +177,59 @@ function love.draw()
 				by,
 				button_width,
 				BUTTON_HEIGHT
-		)
+		    )
 
+      -- reset the color
 			love.graphics.setColor(0, 0, 0, 1)
 
+      -- text's width and height variables
 			local textW = font:getWidth(button.text)
 			local textH = font:getHeight(button.text)
 
+      -- print the button text
 			love.graphics.print(
 				button.text,
 				font,
 				(ww * 0.5) - textW * 0.5,
 				by + textH * 0.5
-		)
+		    )
 
+      -- set the cursor y to itself plus the button height and the margin
 			cursor_y = cursor_y + (BUTTON_HEIGHT + margin)
 		end
 
 	end
 
 
-
+  -- play state's draw
 	if gameState == 'playState' then
+    -- scales the background and draws it
 		love.graphics.push()
 		love.graphics.scale(7, 7)
 		love.graphics.draw(background)
 		love.graphics.pop()
 
+    -- enemy draw function callback
 		enemy:draw()
 
+    -- resets color and draws player sprite
 		love.graphics.setColor(1, 1, 1)
 		love.graphics.draw(playerImg, player.x, player.y, 0, 2, 2)
 
+    -- sets color to red and draws bullets from table
 		love.graphics.setColor(1, 0, 0)
 		for i,v in ipairs(player.bullets) do
-			--love.graphics.rectangle("fill", v.x, v.y, 10, 10)
 			love.graphics.circle("fill", v.x, v.y, 9)
 		end
 
+    -- resets color and draws score and groundContacts string
 		love.graphics.setColor(1, 1, 1)
 		love.graphics.print("score: "..tostring(score), 10, 10)
 		love.graphics.setColor(1, 1, 1)
 		love.graphics.print("enemies landed = "..tostring(groundContacts), 10, 25)
 	end
 
+  -- if game state is over then print gameOver screen and stop music
 	if gameState == 'gameOver' then
 		love.graphics.print("Game over!", 300, 240)
 		love.graphics.print("Final Score: "..tostring(score), 300, 260)
@@ -221,39 +237,40 @@ function love.draw()
 	end
 end
 
+-- LOVE2D keypress function
 function love.keypressed(key)
+  -- if the key pressed is escape then call a love.event function that stops the loop and quits the game
 	if key == "escape" then
 		love.event.quit()
 	end
 
+  -- if the key pressed is space then play bulletsound and call the shoot function
 	if key == "space" then
     bulletSound:play()
 		shoot()
 	end
 
-	if key == "k" and devConsole == false then
-		devConsole = true
-	end
-	if key == "l" and devConsole == true then
-		devConsole = false
-	end
-
+  -- pause button is o
 	if key == "o" and paused == false then
 		paused = true
 	end
+  -- unpause button is p
 	if key == "p" and paused == true then
 		paused = false
 	end
 
+  -- just for my use to transition from start state to play state
 	if key == "j" and gameState == "startState" then
 		gameState = "playState"
 	end
 end
 
+-- shoot function that checks if game is paused and in playstate if it is then creates the bullet
 function shoot()
 	if paused == false then
 		if gameState == 'playState' then
 			bullet = {}
+      -- bullet x and y is equal to the players with a small margin such as 13 or -4, and inserts it into a table
 			bullet.x = player.x + 13
 			bullet.y = player.y - 4
 			table.insert(player.bullets, bullet)
@@ -261,15 +278,17 @@ function shoot()
 	end
 end
 
-
+-- function for checking bullet collision
 function bulletCollision()
   -- for loop index, value in table enemy
 	for i,v in ipairs(enemy) do
 		for ia, va in ipairs(player.bullets) do
+      -- basic aabb collision with margins
 			if va.x + 4 > v.x and
 			va.x < v.x + 32 and
 			va.y + 4 > v.y and
 			va.y < v.y + 32 then
+        -- adds score if enemy is hit and sound plays and removes the enemy and bullet from respective tables
 				score = score + 1
         enemyHit:play()
 				table.remove(enemy, i)
@@ -277,22 +296,16 @@ function bulletCollision()
 			end
 		end
 	end
-
 end
 
-function newButton(text, fn)
-  return {
-    text = text,
-    fn = fn,
-  }
-end
-
+-- game over function, pauses the game and switches game state to gameOver
 function gameOver()
 	paused = true
 	drawGameOver = true
 	gameState = 'gameOver'
 end
 
+-- basic function to change the gameState to start state
 function startState()
 	gameState = "startState"
 end
