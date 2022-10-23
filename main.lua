@@ -32,6 +32,7 @@ function love.load()
   -- initializes player image and background variables
 	playerImg = love.graphics.newImage('assets/images/player2.png')
 	background = love.graphics.newImage('assets/images/sea2.png')
+  background2 = love.graphics.newImage('assets/images/firebackground2.png')
 
   -- score variable to keep track of the player's score
 	score = 0
@@ -127,7 +128,11 @@ end
 function love.draw()
 	if gameState == 'startState' then
     -- prints the parameters at ("string", x, y)
-		love.graphics.print("Welcome to the game!", 300, 40)
+    font2 = love.graphics.newFont(64)
+    love.graphics.setColor(0.9, 0, 0.1)
+    love.graphics.draw(background2)
+    love.graphics.setColor(0.8, 0.1, 0.6)
+    love.graphics.print("Wizard Fire", font2, 180, 35)
 
     -- sets local variables window width (ww), and window height (wh) to the width and height of the screen using love graphics functions
 		local ww = love.graphics.getWidth()
@@ -231,8 +236,8 @@ function love.draw()
 
   -- if game state is over then print gameOver screen and stop music
 	if gameState == 'gameOver' then
-		love.graphics.print("Game over!", 300, 240)
-		love.graphics.print("Final Score: "..tostring(score), 300, 260)
+		love.graphics.print("Game over!", 300, 180)
+		love.graphics.print("Final Score: "..tostring(score), 300, 200)
     music:stop()
 	end
 end
@@ -246,7 +251,7 @@ function love.keypressed(key)
 
   -- if the key pressed is space then play bulletsound and call the shoot function
 	if key == "space" then
-    bulletSound:play()
+    --bulletSound:play()
 		shoot()
 	end
 
@@ -274,6 +279,7 @@ function shoot()
 			bullet.x = player.x + 13
 			bullet.y = player.y - 4
 			table.insert(player.bullets, bullet)
+      bulletSound:play()
 		end
 	end
 end
