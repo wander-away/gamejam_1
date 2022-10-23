@@ -3,6 +3,7 @@ require "enemy"
 buttons = {}
 local font = nil
 
+-- function for setting up new button, requires a text and function variable in the parameters
 function newButton(text, fn)
   return {
     text = text,
@@ -13,8 +14,11 @@ function newButton(text, fn)
   }
 end
 
+-- Love2d callback function for loading in game, called once when game is loaded
 function love.load()
+  -- initalizes player table
 	player = {}
+  -- player variables
 	player.x = 465
 	player.y = 450
 	player.w = 30
@@ -22,27 +26,35 @@ function love.load()
 	player.speed = 300
 	player.bullets = {}
 
+  -- player shot variable, is a boolean and is a flag to know if player has shot
   playerShot = false
 
-	playerImg = love.graphics.newImage('player2.png')
-	background = love.graphics.newImage('sea2.png')
+  -- initializes player image and background variables
+	playerImg = love.graphics.newImage('assets/images/player2.png')
+	background = love.graphics.newImage('assets/images/sea2.png')
 
-	devConsole = false
-
+  -- score variable to keep track of the player's score
 	score = 0
 
+  -- paused boolean variable
 	paused = false
 
+  -- boolean variable to flag if need to switch over to game over screen
 	drawGameOver = false
 
-  music = love.audio.newSource('classicalmusic.mp3', 'stream')
-  bulletSound = love.audio.newSource('fireballsound.wav', 'static')
-  enemyHit = love.audio.newSource('enemyHit.wav', 'static')
+  -- initalizes sounds and music variables
+  music = love.audio.newSource('assets/sounds/classicalmusic.mp3', 'stream')
+  bulletSound = love.audio.newSource('assets/sounds/fireballsound.wav', 'static')
+  enemyHit = love.audio.newSource('assets/sounds/enemyHit.wav', 'static')
 
+  -- initalizes game state to a start state, this is a primitive state machine and it is useful so we can switch between states of the game.
 	gameState = "startState"
 
+  -- if the game state is equal to string start states then create buttons for main menu
 	if gameState == "startState" then
+    -- font variable to set a font to use for the buttons
 		font = love.graphics.newFont(32)
+    -- lua function to insert into a 'buttons' table and inserts the newButton function, Has 3 buttons, 'Start Game', 'Settings', 'Exit'
 		table.insert(buttons, newButton(
 			"Start Game",
 			function()
@@ -63,16 +75,21 @@ function love.load()
 	end
 end
 
+-- LOVE2D's update function, this is called every frame which is 1/60th of a second as the frames per second (FPS) is set to 60
 function love.update(dt)
+  -- asks if the paused variable is set to false, if it is then asks if the game state is the play state
 	if paused == false then
 		if gameState == 'playState' then
+      -- function callbacks for the bulletcollision and enemy update function
 			bulletCollision()
 			enemy:update(dt)
 
+      -- sets the music to loop, sets the volume (as if left to full volume (1.0) then it is too loud, and uses play function provided by LOVE2D
       music:setLooping(true)
       music:setVolume(0.7)
       music:play()
 
+      -- uses LOVE2D's keyboard functions and asks if the 'left' arrow key is down and if is set player's x to player's x - the speed of the player times by deltatime (FPS) and then vice versa
 			if love.keyboard.isDown("left") then
 				player.x = player.x - player.speed * dt
 			end
@@ -88,14 +105,17 @@ function love.update(dt)
 				player.x = 0
 			end
 
+      -- for loop that indexs through the player.bullets table and sets the velocity of the bullets
 			for i,v in ipairs(player.bullets) do
 				v.y = v.y - 1000 * dt
 
+        -- if the y velocity (<-speed) is less than or equal to -2 then remove the bullet from the table
 				if v.y <= -2 then
 					table.remove(player.bullets, i)
 				end
 			end
 
+      -- if a enemy contacts the ground then it adds one to the groundContacts variable, if it reaches 5 then call the gameOver function which switches to gameOver state and draws the gameover screen
 			if groundContacts == 5 then
 				gameOver()
 			end
@@ -103,17 +123,22 @@ function love.update(dt)
 	end
 end
 
+-- LOVE2D's draw function, it is also called every second as the same as love.update function but is only used to draw onto the screen
 function love.draw()
 	if gameState == 'startState' then
-		love.graphics.print("Welcome to the game!", 300, 240)
+    -- prints the parameters at ("string", x, y)
+		love.graphics.print("Welcome to the game!", 300, 40)
 
+    -- sets local variables window width (ww), and window height (wh) to the width and height of the screen using love graphics functions
 		local ww = love.graphics.getWidth()
 		local wh = love.graphics.getHeight()
 
+    -- sets local variables for the button width and height and the margin for which the buttons are seperated so they are not touching
 		local button_width = ww * (1/3)
 		local BUTTON_HEIGHT = wh * (1/8)
 		local margin = 16
 
+    -- sets a total height variable for the buttons and a y cursor variable 
 		local total_height = (BUTTON_HEIGHT + margin) * #buttons
 		local cursor_y = 0
 
@@ -236,7 +261,9 @@ function shoot()
 	end
 end
 
+
 function bulletCollision()
+  -- for loop index, value in table enemy
 	for i,v in ipairs(enemy) do
 		for ia, va in ipairs(player.bullets) do
 			if va.x + 4 > v.x and
@@ -250,6 +277,7 @@ function bulletCollision()
 			end
 		end
 	end
+
 end
 
 function newButton(text, fn)
